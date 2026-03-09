@@ -1,0 +1,51 @@
+# .NET
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+*.vs/
+.vscode/
+TestResults/
+*.nupkg
+*.snupkg
+*.cache
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# EF Core マイグレーション（自動生成されるため除外しない）
+# Migrations/ は除外しないこと
+
+# 環境変数・シークレット
+.env
+.env.local
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+
+# Node.js（GitHub Actions 設定用）
+node_modules/
+npm-debug.log*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# テスト結果・カバレッジ
+coverage/
+*.coverage
+*.coveragexml
