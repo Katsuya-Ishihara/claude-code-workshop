@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TodoApp.Api.Data;
+using TodoApp.Api.Endpoints;
 using TodoApp.Api.Exceptions;
 using TodoApp.Api.Middleware;
 
@@ -81,6 +82,8 @@ app.MapGet("/weatherforecast", () =>
 
 app.MapGet("/test/auth", () => "Authenticated!")
     .RequireAuthorization();
+
+app.MapAuthEndpoints();
 
 app.Run();
 
