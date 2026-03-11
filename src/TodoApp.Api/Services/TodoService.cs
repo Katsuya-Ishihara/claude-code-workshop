@@ -53,4 +53,18 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
             AssignedToUserId = todoItem.AssignedToUserId
         };
     }
+
+    public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var todoItem = await dbContext.TodoItems
+            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+
+        if (todoItem is null)
+        {
+            throw new NotFoundException("指定されたTodoが見つかりません");
+        }
+
+        todoItem.DeletedAt = DateTime.UtcNow;
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
 }
