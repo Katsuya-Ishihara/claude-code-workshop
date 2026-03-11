@@ -9,9 +9,11 @@ namespace TodoApp.Api.Services;
 
 public class AuthService(TodoAppDbContext dbContext) : IAuthService
 {
-    public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+    public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
     {
-        var emailExists = await dbContext.Users.AnyAsync(u => u.Email == request.Email);
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+
+        var emailExists = await dbContext.Users.AnyAsync(u => u.Email == normalizedEmail, cancellationToken);
         if (emailExists)
         {
             throw new ConflictException("このメールアドレスは既に登録されています");
@@ -19,13 +21,13 @@ public class AuthService(TodoAppDbContext dbContext) : IAuthService
 
         var user = new User
         {
-            Email = request.Email,
+            Email = normalizedEmail,
             DisplayName = request.DisplayName,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
         };
 
         dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return new AuthResponse
         {

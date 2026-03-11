@@ -8,7 +8,7 @@ public static class AuthEndpoints
 {
     public static void MapAuthEndpoints(this WebApplication app)
     {
-        app.MapPost("/api/auth/register", async (RegisterRequest request, IAuthService authService) =>
+        app.MapPost("/api/auth/register", async (RegisterRequest request, IAuthService authService, CancellationToken cancellationToken) =>
         {
             var validationResults = new List<ValidationResult>();
             var context = new ValidationContext(request);
@@ -22,7 +22,7 @@ public static class AuthEndpoints
                 return Results.ValidationProblem(errors);
             }
 
-            var response = await authService.RegisterAsync(request);
+            var response = await authService.RegisterAsync(request, cancellationToken);
             return Results.Created($"/api/users/{response.UserId}", response);
         });
     }
