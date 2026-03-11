@@ -1,12 +1,31 @@
+using TodoApp.Api.Exceptions;
+using TodoApp.Api.Middleware;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// テスト用エンドポイント（例外ハンドリング検証）
+app.MapGet("/test/not-found", () =>
+{
+    throw new NotFoundException("テストリソースが見つかりません");
+});
+
+app.MapGet("/test/business-rule", () =>
+{
+    throw new BusinessRuleException("ビジネスルールに違反しています");
+});
+
+app.MapGet("/test/unhandled", () =>
+{
+    throw new InvalidOperationException("予期しないエラー");
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -39,3 +58,6 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
+public partial class Program;
+
