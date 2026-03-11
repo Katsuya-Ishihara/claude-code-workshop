@@ -54,7 +54,7 @@ SQL（CREATE TABLE文）が自動生成される
         ↓
 dotnet ef database update
         ↓
-実際の MySQL テーブルが作られる
+実際の SQLite テーブルが作られる
 ```
 
 ### Database First（DBファースト）
@@ -167,7 +167,7 @@ dotnet ef migrations add InitialCreate --project src/TodoApp.API
 # 2. 生成されたSQLを確認（自動生成された CREATE TABLE 文）
 dotnet ef migrations script
 
-# 3. MySQL に適用
+# 3. SQLite に適用
 dotnet ef database update --project src/TodoApp.API
 ```
 
@@ -198,4 +198,4 @@ AI 駆動開発が変えたのは「誰がやるか」と「速度」だけ
 
 - [EF Core 公式：Code First アプローチ](https://learn.microsoft.com/ja-jp/ef/core/managing-schemas/migrations/)
 - [EF Core 公式：Database First アプローチ](https://learn.microsoft.com/ja-jp/ef/core/managing-schemas/scaffolding/)
-- [Pomelo.EntityFrameworkCore.MySql](https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql)
+- [Microsoft.EntityFrameworkCore.Sqlite](https://learn.microsoft.com/ja-jp/ef/core/providers/sqlite/)

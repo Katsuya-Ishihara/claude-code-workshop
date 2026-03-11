@@ -124,7 +124,26 @@ fork することで、自分の作業はすべて自分のリポジトリに入
 □ Node.js インストール（GitHub Actions 設定用）
 
 □ VS Code または任意のターミナル
+
+□ Context7 MCP サーバー インストール
+    claude mcp add context7 -- npx -y @upstash/context7-mcp
 ```
+
+### Context7 MCP サーバーとは
+
+**MCP（Model Context Protocol）** は、Claude に外部ツールやデータソースを接続するための仕組みです。
+Claude Code はデフォルトでいくつかのツールを持っていますが、MCP サーバーを追加することで機能を拡張できます。
+
+**Context7** は .NET・Blazor などのライブラリの**最新ドキュメントをリアルタイムで取得**する MCP サーバーです。
+Claude の学習データには含まれていない最新の API 仕様や破壊的変更も正確に参照できます。
+
+```
+MCP サーバーなし：Claude の知識（学習データ）のみ → 古い API を使うリスクあり
+MCP サーバーあり：最新ドキュメントを都度参照  → 常に正確な実装が可能
+```
+
+インストール後は Claude Code 起動時に自動的に有効になります。
+Claude が必要に応じて `use context7` と指示するだけでドキュメントを参照します。
 
 ---
 
