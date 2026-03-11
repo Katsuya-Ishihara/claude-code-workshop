@@ -6,4 +6,5 @@ namespace TodoApp.Api.Services;
 public interface ITodoService
 {
     Task<TodoResponse> CreateAsync(CreateTodoRequest request, int createdByUserId, CancellationToken cancellationToken = default);
+    Task<TodoResponse> UpdateStatusAsync(int id, UpdateTodoStatusRequest request, CancellationToken cancellationToken = default);
 }

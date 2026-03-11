@@ -38,6 +38,32 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
         dbContext.TodoItems.Add(todoItem);
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        return MapToResponse(todoItem);
+    }
+
+    public async Task<TodoResponse> UpdateStatusAsync(int id, UpdateTodoStatusRequest request, CancellationToken cancellationToken = default)
+    {
+        var todoItem = await dbContext.TodoItems.FindAsync([id], cancellationToken)
+            ?? throw new NotFoundException("指定されたTodoが見つかりません");
+
+        todoItem.Status = request.Status;
+
+        if (request.Status == TodoStatus.Completed)
+        {
+            todoItem.CompletedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            todoItem.CompletedAt = null;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return MapToResponse(todoItem);
+    }
+
+    private static TodoResponse MapToResponse(TodoItem todoItem)
+    {
         return new TodoResponse
         {
             Id = todoItem.Id,
