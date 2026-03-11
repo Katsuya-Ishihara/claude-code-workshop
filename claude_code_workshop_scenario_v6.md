@@ -599,6 +599,23 @@ gh pr create コマンドを使って実行してください。
 
 **目的：** PRをトリガーに自動テスト・品質チェックが走ることを実演
 
+> このフェーズも Claude Code にプロンプトを渡すだけです。
+> Claude が YAML ファイルを生成・コミット・プッシュし、GitHub が自動検知して実行します。
+
+### GitHub Actions とは
+
+GitHub Actions は **GitHub に組み込まれた CI/CD（継続的インテグレーション／継続的デリバリー）サービス**です。
+リポジトリの `.github/workflows/` ディレクトリに YAML ファイルを置くと、
+GitHub がそれを検知して、指定した条件（PR作成、push など）で自動実行します。
+
+```
+.github/
+  workflows/
+    ci.yml    ← この YAML ファイルが GitHub Actions の定義
+```
+
+人間が YAML の書き方を知らなくても、Claude Code がプロンプトから生成します。
+
 ### 6-1. GitHub Actions ワークフローの生成
 
 **📋 プロンプト（コピペして使用）：**
