@@ -17,6 +17,11 @@ project.lock.json
 project.fragment.lock.json
 artifacts/
 
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
 # EF Core マイグレーション（自動生成されるため除外しない）
 # Migrations/ は除外しないこと
 
