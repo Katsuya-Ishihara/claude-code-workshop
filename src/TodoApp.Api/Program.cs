@@ -3,10 +3,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using TodoApp.Api.Data;
+using TodoApp.Api.Exceptions;
+using TodoApp.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.AddProblemDetails();
 builder.Services.AddDbContext<TodoAppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -30,6 +33,8 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -38,6 +43,22 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// テスト用エンドポイント（例外ハンドリング検証）
+app.MapGet("/test/not-found", () =>
+{
+    throw new NotFoundException("テストリソースが見つかりません");
+});
+
+app.MapGet("/test/business-rule", () =>
+{
+    throw new BusinessRuleException("ビジネスルールに違反しています");
+});
+
+app.MapGet("/test/unhandled", () =>
+{
+    throw new InvalidOperationException("予期しないエラー");
+});
 
 var summaries = new[]
 {
