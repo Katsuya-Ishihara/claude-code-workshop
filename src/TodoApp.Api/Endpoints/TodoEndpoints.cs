@@ -32,5 +32,23 @@ public static class TodoEndpoints
             var response = await todoService.CreateAsync(request, userId, cancellationToken);
             return Results.Created($"/api/todos/{response.Id}", response);
         }).RequireAuthorization();
+
+        app.MapPut("/api/todos/{id:int}", async (int id, UpdateTodoRequest request, ITodoService todoService, CancellationToken cancellationToken) =>
+        {
+            var validationResults = new List<ValidationResult>();
+            var context = new ValidationContext(request);
+            if (!Validator.TryValidateObject(request, context, validationResults, validateAllProperties: true))
+            {
+                var errors = validationResults
+                    .GroupBy(v => v.MemberNames.FirstOrDefault() ?? string.Empty)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(v => v.ErrorMessage ?? string.Empty).ToArray());
+                return Results.ValidationProblem(errors);
+            }
+
+            var response = await todoService.UpdateAsync(id, request, cancellationToken);
+            return Results.Ok(response);
+        }).RequireAuthorization();
     }
 }
