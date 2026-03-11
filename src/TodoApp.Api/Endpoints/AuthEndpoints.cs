@@ -30,6 +30,14 @@ public static class AuthEndpoints
             return Results.Created($"/api/users/{response.UserId}", response);
         });
 
+        app.MapPost("/api/auth/login", async (LoginRequest request, IAuthService authService, CancellationToken cancellationToken) =>
+        {
+            var result = await authService.LoginAsync(request, cancellationToken);
+            return result is null
+                ? Results.Unauthorized()
+                : Results.Ok(result);
+        });
+
         app.MapGet("/api/auth/me", async (ClaimsPrincipal user, TodoAppDbContext db) =>
         {
             var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
