@@ -7,9 +7,9 @@ public static class AuthEndpoints
 {
     public static void MapAuthEndpoints(this WebApplication app)
     {
-        app.MapPost("/api/auth/login", async (LoginRequest request, IAuthService authService) =>
+        app.MapPost("/api/auth/login", async (LoginRequest request, IAuthService authService, CancellationToken cancellationToken) =>
         {
-            var result = await authService.LoginAsync(request);
+            var result = await authService.LoginAsync(request, cancellationToken);
             return result is null
                 ? Results.Unauthorized()
                 : Results.Ok(result);

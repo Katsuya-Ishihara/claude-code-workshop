@@ -11,10 +11,10 @@ namespace TodoApp.Api.Services;
 
 public class AuthService(TodoAppDbContext dbContext, IConfiguration configuration) : IAuthService
 {
-    public async Task<AuthResponse?> LoginAsync(LoginRequest request)
+    public async Task<AuthResponse?> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
         var user = await dbContext.Users
-            .FirstOrDefaultAsync(u => u.Email == request.Email);
+            .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
 
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {

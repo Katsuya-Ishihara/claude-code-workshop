@@ -5,5 +5,5 @@ namespace TodoApp.Api.Services;
 
 public interface IAuthService
 {
-    Task<AuthResponse?> LoginAsync(LoginRequest request);
+    Task<AuthResponse?> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
 }

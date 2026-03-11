@@ -9,5 +9,6 @@ public class LoginRequest
     public required string Email { get; set; }
 
     [Required]
+    [StringLength(128)]
     public required string Password { get; set; }
 }
