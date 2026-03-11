@@ -16,6 +16,11 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             logger.LogWarning(ex, "リソースが見つかりません");
             await WriteProblemDetailsAsync(context, StatusCodes.Status404NotFound, ex.Message);
         }
+        catch (ConflictException ex)
+        {
+            logger.LogWarning(ex, "リソース競合");
+            await WriteProblemDetailsAsync(context, StatusCodes.Status409Conflict, ex.Message);
+        }
         catch (BusinessRuleException ex)
         {
             logger.LogWarning(ex, "ビジネスルール違反");
