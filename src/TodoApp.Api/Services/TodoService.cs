@@ -41,6 +41,38 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
         return MapToResponse(todoItem);
     }
 
+    public async Task<TodoResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var todo = await dbContext.TodoItems
+            .AsNoTracking()
+            .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
+            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+
+        if (todo is null)
+        {
+            throw new NotFoundException("指定されたTodoが見つかりません");
+        }
+
+        return new TodoResponse
+        {
+            Id = todo.Id,
+            Title = todo.Title,
+            Description = todo.Description,
+            Status = todo.Status,
+            Priority = todo.Priority,
+            ProgressRate = todo.ProgressRate,
+            DueDate = todo.DueDate,
+            CompletedAt = todo.CompletedAt,
+            CreatedByUserId = todo.CreatedByUserId,
+            AssignedToUserId = todo.AssignedToUserId,
+            CreatedByName = todo.CreatedBy.DisplayName,
+            AssignedToName = todo.AssignedTo?.DisplayName,
+            CreatedAt = todo.CreatedAt,
+            UpdatedAt = todo.UpdatedAt
+        };
+    }
+
     public async Task<TodoResponse> UpdateStatusAsync(int id, UpdateTodoStatusRequest request, CancellationToken cancellationToken = default)
     {
         var todoItem = await dbContext.TodoItems.FindAsync([id], cancellationToken)

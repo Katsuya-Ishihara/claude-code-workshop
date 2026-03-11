@@ -34,6 +34,12 @@ public static class TodoEndpoints
             return Results.Created($"/api/todos/{response.Id}", response);
         }).RequireAuthorization();
 
+        app.MapGet("/api/todos/{id:int}", async (int id, ITodoService todoService, CancellationToken cancellationToken) =>
+        {
+            var todo = await todoService.GetByIdAsync(id, cancellationToken);
+            return Results.Ok(todo);
+        }).RequireAuthorization();
+
         app.MapPatch("/api/todos/{id:int}/status", async (int id, UpdateTodoStatusRequest request, ITodoService todoService, CancellationToken cancellationToken) =>
         {
             if (!Enum.IsDefined(typeof(TodoStatus), request.Status))
