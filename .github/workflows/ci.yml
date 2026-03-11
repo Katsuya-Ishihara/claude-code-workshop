@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: .NET 9 SDK をセットアップ
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: NuGet パッケージを復元
+        run: dotnet restore TodoApp.sln
+
+      - name: ソリューションをビルド
+        run: dotnet build TodoApp.sln --no-restore --configuration Release
+
+      - name: テストを実行
+        run: dotnet test TodoApp.sln --no-build --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+
+      - name: テスト結果をアップロード
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: "**/TestResults/*.trx"
+          retention-days: 30
