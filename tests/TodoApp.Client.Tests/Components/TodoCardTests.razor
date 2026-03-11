@@ -1,0 +1,178 @@
+@inherits Bunit.TestContext
+@using TodoApp.Client.Components
+@using TodoApp.Shared.Models
+@using TodoApp.Shared.Responses
+
+@code {
+    private TodoResponse CreateTestTodo(
+        int id = 1,
+        string title = "テストタスク",
+        TodoStatus status = TodoStatus.NotStarted,
+        Priority priority = Priority.Medium,
+        DateTime? dueDate = null,
+        int? assignedToUserId = null)
+    {
+        return new TodoResponse
+        {
+            Id = id,
+            Title = title,
+            Status = status,
+            Priority = priority,
+            DueDate = dueDate,
+            AssignedToUserId = assignedToUserId,
+            CreatedAt = new DateTime(2026, 1, 1),
+            UpdatedAt = new DateTime(2026, 1, 1),
+            CreatedByUserId = 1,
+            ProgressRate = 0
+        };
+    }
+
+    [Fact]
+    public void TodoCard_タイトルが表示される()
+    {
+        var todo = CreateTestTodo(title: "重要なタスク");
+
+        var cut = Render(
+            @<TodoCard Todo="todo" />
+        );
+
+        cut.Find(".card-title").TextContent.Trim().MarkupMatches("重要なタスク");
+    }
+
+    [Fact]
+    public void TodoCard_StatusBadgeが表示される()
+    {
+        var todo = CreateTestTodo(status: TodoStatus.InProgress);
+
+        var cut = Render(
+            @<TodoCard Todo="todo" />
+        );
+
+        var badge = cut.Find(".badge");
+        Assert.NotNull(badge);
+        Assert.Contains("bg-primary", badge.ClassList);
+    }
+
+    [Fact]
+    public void TodoCard_PriorityIconが表示される()
+    {
+        var todo = CreateTestTodo(priority: Priority.High);
+
+        var cut = Render(
+            @<TodoCard Todo="todo" />
+        );
+
+        var icon = cut.Find(".priority-icon");
+        Assert.NotNull(icon);
+        Assert.Contains("text-danger", icon.ClassList);
+    }
+
+    [Fact]
+    public void TodoCard_期限が表示される()
+    {
+        var dueDate = new DateTime(2026, 6, 15);
+        var todo = CreateTestTodo(dueDate: dueDate);
+
+        var cut = Render(
+            @<TodoCard Todo="todo" />
+        );
+
+        var dueDateElement = cut.Find(".todo-card-due-date");
+        Assert.Contains("2026/06/15", dueDateElement.TextContent);
+    }
+
+    [Fact]
+    public void TodoCard_期限切れの場合は赤色で表示される()
+    {
+        var pastDate = DateTime.Now.AddDays(-1);
+        var todo = CreateTestTodo(dueDate: pastDate, status: TodoStatus.InProgress);
+
+        var cut = Render(
+            @<TodoCard Todo="todo" />
+        );
+
+        var dueDateElement = cut.Find(".todo-card-due-date");
+        Assert.Contains("text-danger", dueDateElement.ClassList);
+    }
+
+    [Fact]
+    public void TodoCard_完了済みタスクは期限切れでも赤色にならない()
+    {
+        var pastDate = DateTime.Now.AddDays(-1);
+        var todo = CreateTestTodo(dueDate: pastDate, status: TodoStatus.Completed);
+
+        var cut = Render(
+            @<TodoCard Todo="todo" />
+        );
+
+        var dueDateElement = cut.Find(".todo-card-due-date");
+        Assert.DoesNotContain("text-danger", dueDateElement.ClassList);
+    }
+
+    [Fact]
+    public void TodoCard_期限がnullの場合は期限欄が表示されない()
+    {
+        var todo = CreateTestTodo(dueDate: null);
+
+        var cut = Render(
+            @<TodoCard Todo="todo" />
+        );
+
+        var dueDateElements = cut.FindAll(".todo-card-due-date");
+        Assert.Empty(dueDateElements);
+    }
+
+    [Fact]
+    public void TodoCard_担当者名が表示される()
+    {
+        var todo = CreateTestTodo(assignedToUserId: 2);
+
+        var cut = Render(
+            @<TodoCard Todo="todo" AssigneeName="田中太郎" />
+        );
+
+        var assignee = cut.Find(".todo-card-assignee");
+        Assert.Contains("田中太郎", assignee.TextContent);
+    }
+
+    [Fact]
+    public void TodoCard_担当者名がnullの場合は未割り当てと表示される()
+    {
+        var todo = CreateTestTodo(assignedToUserId: null);
+
+        var cut = Render(
+            @<TodoCard Todo="todo" />
+        );
+
+        var assignee = cut.Find(".todo-card-assignee");
+        Assert.Contains("未割り当て", assignee.TextContent);
+    }
+
+    [Fact]
+    public void TodoCard_クリック時にOnClickが発火しTodoIdが渡される()
+    {
+        var todo = CreateTestTodo(id: 42);
+        int? clickedId = null;
+
+        var cut = Render(
+            @<TodoCard Todo="todo" OnClick="(id) => clickedId = id" />
+        );
+
+        cut.Find(".card").Click();
+        Assert.Equal(42, clickedId);
+    }
+
+    [Fact]
+    public void TodoCard_Bootstrapのcardクラスが使用される()
+    {
+        var todo = CreateTestTodo();
+
+        var cut = Render(
+            @<TodoCard Todo="todo" />
+        );
+
+        var card = cut.Find(".card");
+        Assert.NotNull(card);
+        Assert.NotNull(cut.Find(".card-body"));
+    }
+}

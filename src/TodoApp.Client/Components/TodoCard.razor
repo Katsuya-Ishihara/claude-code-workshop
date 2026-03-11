@@ -1,0 +1,47 @@
+@using TodoApp.Shared.Models
+@using TodoApp.Shared.Responses
+
+<div class="card todo-card" @onclick="HandleClick" style="cursor: pointer;">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <h5 class="card-title mb-0">@Todo.Title</h5>
+            <PriorityIcon Priority="Todo.Priority" />
+        </div>
+
+        <div class="mb-2">
+            <StatusBadge Status="Todo.Status" />
+        </div>
+
+        @if (Todo.DueDate.HasValue)
+        {
+            <div class="todo-card-due-date @(IsOverdue ? "text-danger" : "")">
+                <small>期限: @Todo.DueDate.Value.ToString("yyyy/MM/dd")</small>
+            </div>
+        }
+
+        <div class="todo-card-assignee">
+            <small>担当: @(AssigneeName ?? "未割り当て")</small>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public TodoResponse Todo { get; set; } = default!;
+
+    [Parameter]
+    public string? AssigneeName { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnClick { get; set; }
+
+    private bool IsOverdue =>
+        Todo.DueDate.HasValue
+        && Todo.DueDate.Value < DateTime.Now
+        && Todo.Status != TodoStatus.Completed;
+
+    private async Task HandleClick()
+    {
+        await OnClick.InvokeAsync(Todo.Id);
+    }
+}
