@@ -32,5 +32,11 @@ public static class TodoEndpoints
             var response = await todoService.CreateAsync(request, userId, cancellationToken);
             return Results.Created($"/api/todos/{response.Id}", response);
         }).RequireAuthorization();
+
+        app.MapPatch("/api/todos/{id:int}/assign", async (int id, UpdateTodoAssigneeRequest request, ITodoService todoService, CancellationToken cancellationToken) =>
+        {
+            var response = await todoService.UpdateAssigneeAsync(id, request, cancellationToken);
+            return Results.Ok(response);
+        }).RequireAuthorization();
     }
 }
