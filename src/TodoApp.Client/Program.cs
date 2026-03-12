@@ -13,6 +13,7 @@ builder.Services.AddScoped<AuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<AuthStateProvider>());
 builder.Services.AddScoped<IAuthApiClient, AuthApiClient>();
 builder.Services.AddScoped<ITodoApiClient, TodoApiClient>();
+builder.Services.AddScoped<IUserApiClient, UserApiClient>();
 builder.Services.AddAuthorizationCore();
 
 await builder.Build().RunAsync();
