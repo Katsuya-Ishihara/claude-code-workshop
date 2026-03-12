@@ -18,25 +18,21 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
             .AsNoTracking()
             .AsQueryable();
 
-        // ステータスフィルタ
         if (request.Status.HasValue)
         {
             query = query.Where(t => t.Status == request.Status.Value);
         }
 
-        // 優先度フィルタ
         if (request.Priority.HasValue)
         {
             query = query.Where(t => t.Priority == request.Priority.Value);
         }
 
-        // 担当者フィルタ
         if (request.AssignedToUserId.HasValue)
         {
             query = query.Where(t => t.AssignedToUserId == request.AssignedToUserId.Value);
         }
 
-        // キーワード検索（タイトルまたは説明）
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();
@@ -45,13 +41,10 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
                 (t.Description != null && t.Description.Contains(keyword)));
         }
 
-        // ソート
         query = ApplySort(query, request.SortBy, request.SortDesc);
 
-        // 総件数取得
         var totalCount = await query.CountAsync(cancellationToken);
 
-        // ページネーション
         var page = Math.Max(1, request.Page);
         var pageSize = Math.Clamp(request.PageSize, 1, 100);
 
@@ -89,7 +82,6 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
 
     public async Task<TodoResponse> CreateAsync(CreateTodoRequest request, int createdByUserId, CancellationToken cancellationToken = default)
     {
-        // 担当者が指定されている場合、存在チェック
         if (request.AssignedToUserId.HasValue)
         {
             var assigneeExists = await dbContext.Users
@@ -114,6 +106,13 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
 
         dbContext.TodoItems.Add(todoItem);
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // ナビゲーションプロパティを読み込む
+        await dbContext.Entry(todoItem).Reference(t => t.CreatedBy).LoadAsync(cancellationToken);
+        if (todoItem.AssignedToUserId.HasValue)
+        {
+            await dbContext.Entry(todoItem).Reference(t => t.AssignedTo).LoadAsync(cancellationToken);
+        }
 
         return MapToResponse(todoItem);
     }
@@ -152,7 +151,10 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
 
     public async Task<TodoResponse> UpdateStatusAsync(int id, UpdateTodoStatusRequest request, CancellationToken cancellationToken = default)
     {
-        var todoItem = await dbContext.TodoItems.FindAsync([id], cancellationToken)
+        var todoItem = await dbContext.TodoItems
+            .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
+            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken)
             ?? throw new NotFoundException("指定されたTodoが見つかりません");
 
         todoItem.Status = request.Status;
@@ -200,7 +202,10 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
             CreatedAt = todoItem.CreatedAt,
             UpdatedAt = todoItem.UpdatedAt,
             CreatedByUserId = todoItem.CreatedByUserId,
-            AssignedToUserId = todoItem.AssignedToUserId
+            CreatedByDisplayName = todoItem.CreatedBy.DisplayName,
+            AssignedToUserId = todoItem.AssignedToUserId,
+            AssignedToDisplayName = todoItem.AssignedTo?.DisplayName,
+            CategoryId = todoItem.CategoryId
         };
     }
 }
