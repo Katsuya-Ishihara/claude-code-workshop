@@ -28,10 +28,22 @@ public class AuthStateProvider : AuthenticationStateProvider
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
         }
 
+        var claims = ParseClaimsFromJwt(token);
+
+        var expClaim = claims.FirstOrDefault(c => c.Type == "exp");
+        if (expClaim != null && long.TryParse(expClaim.Value, out var expUnix))
+        {
+            var expTime = DateTimeOffset.FromUnixTimeSeconds(expUnix);
+            if (expTime <= DateTimeOffset.UtcNow)
+            {
+                await MarkUserAsLoggedOutAsync();
+                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            }
+        }
+
         _httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
 
-        var claims = ParseClaimsFromJwt(token);
         var identity = new ClaimsIdentity(claims, "jwt");
         var user = new ClaimsPrincipal(identity);
 

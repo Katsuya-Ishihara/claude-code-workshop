@@ -13,27 +13,27 @@ public class AuthApiClient : IAuthApiClient
         _httpClient = httpClient;
     }
 
-    public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
+    public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/auth/register", request);
+        var response = await _httpClient.PostAsJsonAsync("api/auth/register", request, cancellationToken);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<AuthResponse>()
+        return await response.Content.ReadFromJsonAsync<AuthResponse>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("レスポンスのデシリアライズに失敗しました。");
     }
 
-    public async Task<AuthResponse> LoginAsync(LoginRequest request)
+    public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/auth/login", request);
+        var response = await _httpClient.PostAsJsonAsync("api/auth/login", request, cancellationToken);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<AuthResponse>()
+        return await response.Content.ReadFromJsonAsync<AuthResponse>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("レスポンスのデシリアライズに失敗しました。");
     }
 
-    public async Task<UserResponse> GetMeAsync()
+    public async Task<UserResponse> GetMeAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync("api/auth/me");
+        var response = await _httpClient.GetAsync("api/auth/me", cancellationToken);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<UserResponse>()
+        return await response.Content.ReadFromJsonAsync<UserResponse>(cancellationToken: cancellationToken)
             ?? throw new InvalidOperationException("レスポンスのデシリアライズに失敗しました。");
     }
 }

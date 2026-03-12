@@ -60,6 +60,36 @@ public class AuthStateProviderTests
     }
 
     [Fact]
+    public async Task GetAuthenticationStateAsync_期限切れJWTトークンの場合はログアウトして匿名ユーザーを返す()
+    {
+        // Arrange
+        // JWT token with payload: {"sub":"1","email":"test@example.com","name":"Test User","role":"Member","exp":1000000000} (expired)
+        var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ0ZXN0QGV4YW1wbGUuY29tIiwibmFtZSI6IlRlc3QgVXNlciIsInJvbGUiOiJNZW1iZXIiLCJleHAiOjEwMDAwMDAwMDB9.placeholder";
+
+        _mockJsRuntime
+            .Setup(js => js.InvokeAsync<string>(
+                "localStorage.getItem",
+                It.Is<object[]>(args => args.Length == 1 && (string)args[0] == "authToken")))
+            .ReturnsAsync(token);
+
+        _mockJsRuntime
+            .Setup(js => js.InvokeAsync<IJSVoidResult>(
+                "localStorage.removeItem",
+                It.Is<object[]>(args => args.Length == 1 && (string)args[0] == "authToken")))
+            .ReturnsAsync((IJSVoidResult)null!);
+
+        // Act
+        var state = await _sut.GetAuthenticationStateAsync();
+
+        // Assert
+        Assert.False(state.User.Identity?.IsAuthenticated);
+        _mockJsRuntime.Verify(js => js.InvokeAsync<IJSVoidResult>(
+            "localStorage.removeItem",
+            It.Is<object[]>(args => args.Length == 1 && (string)args[0] == "authToken")),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task MarkUserAsAuthenticated_トークンを保存し認証状態を通知する()
     {
         // Arrange
