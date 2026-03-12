@@ -1,0 +1,46 @@
+@using TodoApp.Client.Services
+@using TodoApp.Shared.Responses
+@inject IUserApiClient UserApiClient
+
+<label>@Label</label>
+<select value="@SelectedUserIdString" @onchange="OnSelectionChanged" disabled="@_isLoading">
+    <option value="">未割当</option>
+    @if (_users is not null)
+    {
+        @foreach (var user in _users)
+        {
+            <option value="@user.Id">@user.DisplayName</option>
+        }
+    }
+</select>
+
+@code {
+    private List<UserResponse>? _users;
+    private bool _isLoading = true;
+
+    [Parameter]
+    public int? SelectedUserId { get; set; }
+
+    [Parameter]
+    public EventCallback<int?> SelectedUserIdChanged { get; set; }
+
+    [Parameter]
+    public string Label { get; set; } = "担当者";
+
+    private string SelectedUserIdString => SelectedUserId?.ToString() ?? "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        _users = await UserApiClient.GetUsersAsync();
+        _isLoading = false;
+    }
+
+    private async Task OnSelectionChanged(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+        int? userId = string.IsNullOrEmpty(value) ? null : int.Parse(value);
+        SelectedUserId = userId;
+        await SelectedUserIdChanged.InvokeAsync(userId);
+    }
+}

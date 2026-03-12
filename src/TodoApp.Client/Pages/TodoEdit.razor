@@ -1,0 +1,85 @@
+@page "/todos/{Id:int}/edit"
+@using TodoApp.Shared.Models
+@using TodoApp.Shared.Requests
+@using TodoApp.Shared.Responses
+@inject ITodoApiClient TodoApiClient
+@inject NavigationManager NavigationManager
+
+<h3>Todo 編集</h3>
+
+@if (_isLoading)
+{
+    <p>読み込み中...</p>
+}
+else if (_todo is null)
+{
+    <p>Todo が見つかりません</p>
+}
+else
+{
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger">@_errorMessage</div>
+    }
+
+    <TodoForm InitialValue="@_initialValue"
+              SubmitButtonText="更新"
+              OnSubmit="HandleSubmit" />
+}
+
+<a href="/todos">一覧に戻る</a>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private TodoResponse? _todo;
+    private CreateTodoRequest? _initialValue;
+    private bool _isLoading = true;
+    private string? _errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+
+        _todo = await TodoApiClient.GetByIdAsync(Id);
+
+        if (_todo is not null)
+        {
+            _initialValue = new CreateTodoRequest
+            {
+                Title = _todo.Title,
+                Description = _todo.Description,
+                Priority = _todo.Priority,
+                DueDate = _todo.DueDate,
+                AssignedToUserId = _todo.AssignedToUserId
+            };
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task HandleSubmit(CreateTodoRequest formData)
+    {
+        var updateRequest = new UpdateTodoRequest
+        {
+            Title = formData.Title,
+            Description = formData.Description,
+            Priority = formData.Priority,
+            DueDate = formData.DueDate,
+            AssignedToUserId = formData.AssignedToUserId
+        };
+
+        var result = await TodoApiClient.UpdateAsync(Id, updateRequest);
+
+        if (result is not null)
+        {
+            NavigationManager.NavigateTo($"/todos/{Id}");
+        }
+        else
+        {
+            _errorMessage = "更新に失敗しました";
+        }
+    }
+}
