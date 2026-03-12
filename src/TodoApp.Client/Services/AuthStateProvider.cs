@@ -49,7 +49,7 @@ public class AuthStateProvider : AuthenticationStateProvider
         return new AuthenticationState(user);
     }
 
-    public async Task MarkUserAsAuthenticatedAsync(string token)
+    public virtual async Task MarkUserAsAuthenticatedAsync(string token)
     {
         await _jsRuntime.InvokeVoidAsync("localStorage.setItem", TokenKey, token);
 
@@ -63,7 +63,7 @@ public class AuthStateProvider : AuthenticationStateProvider
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
     }
 
-    public async Task MarkUserAsLoggedOutAsync()
+    public virtual async Task MarkUserAsLoggedOutAsync()
     {
         await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", TokenKey);
 
