@@ -33,8 +33,14 @@ public static class TodoEndpoints
             return Results.Created($"/api/todos/{response.Id}", response);
         }).RequireAuthorization();
 
-        app.MapPut("/api/todos/{id:int}", async (int id, UpdateTodoRequest request, ITodoService todoService, CancellationToken cancellationToken) =>
+        app.MapPut("/api/todos/{id:int}", async (int id, UpdateTodoRequest request, ClaimsPrincipal user, ITodoService todoService, CancellationToken cancellationToken) =>
         {
+            var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userIdClaim is null || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Results.Unauthorized();
+            }
+
             var validationResults = new List<ValidationResult>();
             var context = new ValidationContext(request);
             if (!Validator.TryValidateObject(request, context, validationResults, validateAllProperties: true))
