@@ -12,6 +12,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddScoped<AuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<AuthStateProvider>());
 builder.Services.AddScoped<IAuthApiClient, AuthApiClient>();
+builder.Services.AddScoped<ITodoApiClient, TodoApiClient>();
 builder.Services.AddAuthorizationCore();
 
 await builder.Build().RunAsync();
