@@ -39,7 +39,7 @@
     private async Task OnSelectionChanged(ChangeEventArgs e)
     {
         var value = e.Value?.ToString();
-        int? userId = string.IsNullOrEmpty(value) ? null : int.Parse(value);
+        int? userId = string.IsNullOrEmpty(value) ? null : (int.TryParse(value, out var parsed) ? parsed : null);
         SelectedUserId = userId;
         await SelectedUserIdChanged.InvokeAsync(userId);
     }

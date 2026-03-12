@@ -151,7 +151,7 @@ public class TodoFormTests : TestContext
 
     private class MockUserApiClient : IUserApiClient
     {
-        public Task<List<UserResponse>> GetUsersAsync()
+        public Task<List<UserResponse>> GetUsersAsync(CancellationToken cancellationToken = default)
         {
             return Task.FromResult(new List<UserResponse>
             {
