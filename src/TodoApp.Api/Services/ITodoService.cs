@@ -10,5 +10,6 @@ public interface ITodoService
     Task<TodoResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<TodoResponse> UpdateAsync(int id, UpdateTodoRequest request, int userId, CancellationToken cancellationToken = default);
     Task<TodoResponse> UpdateStatusAsync(int id, UpdateTodoStatusRequest request, CancellationToken cancellationToken = default);
+    Task<TodoResponse> UpdateAssigneeAsync(int id, UpdateTodoAssigneeRequest request, CancellationToken cancellationToken = default);
     Task DeleteAsync(int id, int userId, CancellationToken cancellationToken = default);
 }
