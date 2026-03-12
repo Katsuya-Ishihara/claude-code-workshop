@@ -14,7 +14,7 @@ public class TodoApiClient : ITodoApiClient
 
     public TodoApiClient(HttpClient httpClient)
     {
-        _httpClient = httpClient;
+        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
     }
 
     /// <inheritdoc />

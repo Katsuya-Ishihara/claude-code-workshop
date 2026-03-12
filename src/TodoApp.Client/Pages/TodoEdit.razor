@@ -37,9 +37,13 @@ else
     private CreateTodoRequest? _initialValue;
     private bool _isLoading = true;
     private string? _errorMessage;
+    private int _previousId;
 
     protected override async Task OnParametersSetAsync()
     {
+        if (Id == _previousId) return;
+        _previousId = Id;
+
         _isLoading = true;
         _errorMessage = null;
 
@@ -62,24 +66,32 @@ else
 
     private async Task HandleSubmit(CreateTodoRequest formData)
     {
-        var updateRequest = new UpdateTodoRequest
+        try
         {
-            Title = formData.Title,
-            Description = formData.Description,
-            Priority = formData.Priority,
-            DueDate = formData.DueDate,
-            AssignedToUserId = formData.AssignedToUserId
-        };
+            var updateRequest = new UpdateTodoRequest
+            {
+                Title = formData.Title,
+                Description = formData.Description,
+                Priority = formData.Priority,
+                DueDate = formData.DueDate,
+                AssignedToUserId = formData.AssignedToUserId
+            };
 
-        var result = await TodoApiClient.UpdateAsync(Id, updateRequest);
+            var result = await TodoApiClient.UpdateAsync(Id, updateRequest);
 
-        if (result is not null)
-        {
-            NavigationManager.NavigateTo($"/todos/{Id}");
+            if (result is not null)
+            {
+                NavigationManager.NavigateTo($"/todos/{Id}");
+            }
+            else
+            {
+                _errorMessage = "更新に失敗しました";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _errorMessage = "更新に失敗しました";
+            Console.Error.WriteLine($"Todo の更新中にエラーが発生しました: {ex.Message}");
+            _errorMessage = "更新中にエラーが発生しました。もう一度お試しください。";
         }
     }
 }
