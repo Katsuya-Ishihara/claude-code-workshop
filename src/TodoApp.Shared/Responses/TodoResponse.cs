@@ -11,9 +11,9 @@ public class TodoResponse
     public Priority Priority { get; set; }
     public int ProgressRate { get; set; }
     public DateTime? DueDate { get; set; }
+    public DateTime? CompletedAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    public DateTime? CompletedAt { get; set; }
     public int CreatedByUserId { get; set; }
     public string CreatedByDisplayName { get; set; } = string.Empty;
     public int? AssignedToUserId { get; set; }
