@@ -1,0 +1,37 @@
+@if (IsVisible)
+{
+    <div class="confirm-dialog-overlay">
+        <div class="confirm-dialog">
+            <div class="confirm-dialog-title">@Title</div>
+            <div class="confirm-dialog-message">@Message</div>
+            <div class="confirm-dialog-actions">
+                <button class="btn btn-secondary btn-cancel" @onclick="OnCancelClick">キャンセル</button>
+                <button class="btn btn-danger btn-confirm" @onclick="OnConfirmClick">確認</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<bool> OnConfirm { get; set; }
+
+    private async Task OnConfirmClick()
+    {
+        await OnConfirm.InvokeAsync(true);
+    }
+
+    private async Task OnCancelClick()
+    {
+        await OnConfirm.InvokeAsync(false);
+    }
+}

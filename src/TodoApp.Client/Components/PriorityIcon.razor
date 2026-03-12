@@ -1,0 +1,24 @@
+@using TodoApp.Shared.Models
+
+<span class="priority-icon @IconClass">@IconText</span>
+
+@code {
+    [Parameter]
+    public Priority Priority { get; set; }
+
+    private string IconClass => Priority switch
+    {
+        Priority.Low => "text-success",
+        Priority.Medium => "text-warning",
+        Priority.High => "text-danger",
+        _ => "text-secondary"
+    };
+
+    private string IconText => Priority switch
+    {
+        Priority.Low => "↓",
+        Priority.Medium => "―",
+        Priority.High => "↑",
+        _ => "?"
+    };
+}
