@@ -11,5 +11,5 @@ public interface IUserApiClient
     /// ユーザー一覧を取得する
     /// </summary>
     /// <returns>ユーザー一覧</returns>
-    Task<List<UserResponse>> GetUsersAsync();
+    Task<List<UserResponse>> GetUsersAsync(CancellationToken cancellationToken = default);
 }

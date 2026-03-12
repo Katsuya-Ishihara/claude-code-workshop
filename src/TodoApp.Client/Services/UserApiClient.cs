@@ -16,12 +16,12 @@ public class UserApiClient : IUserApiClient
     }
 
     /// <inheritdoc />
-    public async Task<List<UserResponse>> GetUsersAsync()
+    public async Task<List<UserResponse>> GetUsersAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync("api/users");
+        var response = await _httpClient.GetAsync("api/users", cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        var users = await response.Content.ReadFromJsonAsync<List<UserResponse>>();
+        var users = await response.Content.ReadFromJsonAsync<List<UserResponse>>(cancellationToken: cancellationToken);
         return users ?? [];
     }
 }
