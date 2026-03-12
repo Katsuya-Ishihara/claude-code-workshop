@@ -33,11 +33,11 @@ public class TodoApiClientTests
         };
     }
 
-    private static (TodoApiClient client, MockHttpMessageHandler handler) CreateClient(
+    private static (TodoApiClient client, SimpleMockHttpMessageHandler handler) CreateClient(
         HttpStatusCode statusCode,
         object? responseBody = null)
     {
-        var handler = new MockHttpMessageHandler(statusCode, responseBody);
+        var handler = new SimpleMockHttpMessageHandler(statusCode, responseBody);
         var httpClient = new HttpClient(handler)
         {
             BaseAddress = new Uri("http://localhost/")
@@ -320,7 +320,7 @@ public class TodoApiClientTests
 /// <summary>
 /// テスト用の HttpMessageHandler モック。
 /// </summary>
-public class MockHttpMessageHandler : HttpMessageHandler
+public class SimpleMockHttpMessageHandler : HttpMessageHandler
 {
     private readonly HttpStatusCode _statusCode;
     private readonly object? _responseBody;
@@ -333,7 +333,7 @@ public class MockHttpMessageHandler : HttpMessageHandler
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public MockHttpMessageHandler(HttpStatusCode statusCode, object? responseBody = null)
+    public SimpleMockHttpMessageHandler(HttpStatusCode statusCode, object? responseBody = null)
     {
         _statusCode = statusCode;
         _responseBody = responseBody;
