@@ -15,7 +15,8 @@ public class TodoResponse
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public int CreatedByUserId { get; set; }
+    public string CreatedByDisplayName { get; set; } = string.Empty;
     public int? AssignedToUserId { get; set; }
-    public string CreatedByName { get; set; } = string.Empty;
-    public string? AssignedToName { get; set; }
+    public string? AssignedToDisplayName { get; set; }
+    public int? CategoryId { get; set; }
 }

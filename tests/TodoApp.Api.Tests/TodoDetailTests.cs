@@ -104,8 +104,8 @@ public class TodoDetailTests : IClassFixture<WebApplicationFactory<Program>>, ID
         Assert.Equal(TodoStatus.InProgress, todo.Status);
         Assert.Equal(Priority.High, todo.Priority);
         Assert.Equal(50, todo.ProgressRate);
-        Assert.Equal("テストユーザー", todo.CreatedByName);
-        Assert.Equal("担当者", todo.AssignedToName);
+        Assert.Equal("テストユーザー", todo.CreatedByDisplayName);
+        Assert.Equal("担当者", todo.AssignedToDisplayName);
     }
 
     [Fact]
