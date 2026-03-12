@@ -19,7 +19,17 @@
     {
         ToastService.OnChange += StateHasChanged;
         _timer = new System.Timers.Timer(3000);
-        _timer.Elapsed += async (_, _) => await RemoveExpiredToasts();
+        _timer.Elapsed += async (_, _) =>
+        {
+            try
+            {
+                await RemoveExpiredToasts();
+            }
+            catch (Exception)
+            {
+                // Timer elapsed イベントでの例外を安全に処理する
+            }
+        };
         _timer.AutoReset = true;
         _timer.Start();
     }

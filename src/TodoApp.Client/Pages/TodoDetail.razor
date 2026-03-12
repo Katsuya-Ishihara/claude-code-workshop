@@ -109,8 +109,9 @@ else
             _todo = await todoTask;
             _users = await usersTask;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Console.Error.WriteLine($"Todo の読み込みに失敗しました: {ex.Message}");
             _todo = null;
         }
         finally
