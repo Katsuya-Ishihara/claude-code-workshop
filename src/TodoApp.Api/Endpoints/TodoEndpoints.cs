@@ -92,6 +92,18 @@ public static class TodoEndpoints
             return Results.Ok(response);
         }).RequireAuthorization();
 
+        app.MapDelete("/api/todos/{id:int}", async (int id, ClaimsPrincipal user, ITodoService todoService, CancellationToken cancellationToken) =>
+        {
+            var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userIdClaim is null || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Results.Unauthorized();
+            }
+
+            await todoService.DeleteAsync(id, userId, cancellationToken);
+            return Results.NoContent();
+        }).RequireAuthorization();
+
         app.MapPatch("/api/todos/{id:int}/status", async (int id, UpdateTodoStatusRequest request, ITodoService todoService, CancellationToken cancellationToken) =>
         {
             if (!Enum.IsDefined(typeof(TodoStatus), request.Status))

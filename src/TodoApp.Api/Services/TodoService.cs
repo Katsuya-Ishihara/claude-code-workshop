@@ -19,32 +19,19 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
             .AsQueryable();
 
         if (request.Status.HasValue)
-        {
             query = query.Where(t => t.Status == request.Status.Value);
-        }
-
         if (request.Priority.HasValue)
-        {
             query = query.Where(t => t.Priority == request.Priority.Value);
-        }
-
         if (request.AssignedToUserId.HasValue)
-        {
             query = query.Where(t => t.AssignedToUserId == request.AssignedToUserId.Value);
-        }
-
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();
-            query = query.Where(t =>
-                t.Title.Contains(keyword) ||
-                (t.Description != null && t.Description.Contains(keyword)));
+            query = query.Where(t => t.Title.Contains(keyword) || (t.Description != null && t.Description.Contains(keyword)));
         }
 
         query = ApplySort(query, request.SortBy, request.SortDesc);
-
         var totalCount = await query.CountAsync(cancellationToken);
-
         var page = Math.Max(1, request.Page);
         var pageSize = Math.Clamp(request.PageSize, 1, 100);
 
@@ -53,16 +40,10 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
             .Take(pageSize)
             .Select(t => new TodoResponse
             {
-                Id = t.Id,
-                Title = t.Title,
-                Description = t.Description,
-                Status = t.Status,
-                Priority = t.Priority,
-                ProgressRate = t.ProgressRate,
-                DueDate = t.DueDate,
-                CompletedAt = t.CompletedAt,
-                CreatedAt = t.CreatedAt,
-                UpdatedAt = t.UpdatedAt,
+                Id = t.Id, Title = t.Title, Description = t.Description,
+                Status = t.Status, Priority = t.Priority, ProgressRate = t.ProgressRate,
+                DueDate = t.DueDate, CompletedAt = t.CompletedAt,
+                CreatedAt = t.CreatedAt, UpdatedAt = t.UpdatedAt,
                 CreatedByUserId = t.CreatedByUserId,
                 CreatedByDisplayName = t.CreatedBy.DisplayName,
                 AssignedToUserId = t.AssignedToUserId,
@@ -71,37 +52,23 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
             })
             .ToListAsync(cancellationToken);
 
-        return new PaginatedResponse<TodoResponse>
-        {
-            Items = items,
-            TotalCount = totalCount,
-            Page = page,
-            PageSize = pageSize
-        };
+        return new PaginatedResponse<TodoResponse> { Items = items, TotalCount = totalCount, Page = page, PageSize = pageSize };
     }
 
     public async Task<TodoResponse> CreateAsync(CreateTodoRequest request, int createdByUserId, CancellationToken cancellationToken = default)
     {
         if (request.AssignedToUserId.HasValue)
         {
-            var assigneeExists = await dbContext.Users
-                .AnyAsync(u => u.Id == request.AssignedToUserId.Value, cancellationToken);
-            if (!assigneeExists)
-            {
-                throw new NotFoundException("指定された担当者が見つかりません");
-            }
+            var assigneeExists = await dbContext.Users.AnyAsync(u => u.Id == request.AssignedToUserId.Value, cancellationToken);
+            if (!assigneeExists) throw new NotFoundException("指定された担当者が見つかりません");
         }
 
         var todoItem = new TodoItem
         {
-            Title = request.Title,
-            Description = request.Description,
-            Priority = request.Priority ?? Priority.Medium,
-            DueDate = request.DueDate,
-            CreatedByUserId = createdByUserId,
-            AssignedToUserId = request.AssignedToUserId,
-            Status = TodoStatus.NotStarted,
-            ProgressRate = 0
+            Title = request.Title, Description = request.Description,
+            Priority = request.Priority ?? Priority.Medium, DueDate = request.DueDate,
+            CreatedByUserId = createdByUserId, AssignedToUserId = request.AssignedToUserId,
+            Status = TodoStatus.NotStarted, ProgressRate = 0
         };
 
         dbContext.TodoItems.Add(todoItem);
@@ -109,9 +76,7 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
 
         await dbContext.Entry(todoItem).Reference(t => t.CreatedBy).LoadAsync(cancellationToken);
         if (todoItem.AssignedToUserId.HasValue)
-        {
             await dbContext.Entry(todoItem).Reference(t => t.AssignedTo).LoadAsync(cancellationToken);
-        }
 
         return MapToResponse(todoItem);
     }
@@ -122,12 +87,8 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
             .AsNoTracking()
             .Include(t => t.CreatedBy)
             .Include(t => t.AssignedTo)
-            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
-
-        if (todo is null)
-        {
-            throw new NotFoundException("指定されたTodoが見つかりません");
-        }
+            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken)
+            ?? throw new NotFoundException("指定されたTodoが見つかりません");
 
         return MapToResponse(todo);
     }
@@ -142,12 +103,8 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
 
         if (request.AssignedToUserId.HasValue)
         {
-            var assigneeExists = await dbContext.Users
-                .AnyAsync(u => u.Id == request.AssignedToUserId.Value, cancellationToken);
-            if (!assigneeExists)
-            {
-                throw new NotFoundException("指定された担当者が見つかりません");
-            }
+            var assigneeExists = await dbContext.Users.AnyAsync(u => u.Id == request.AssignedToUserId.Value, cancellationToken);
+            if (!assigneeExists) throw new NotFoundException("指定された担当者が見つかりません");
         }
 
         todoItem.Title = request.Title;
@@ -157,7 +114,6 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
         todoItem.AssignedToUserId = request.AssignedToUserId;
 
         await dbContext.SaveChangesAsync(cancellationToken);
-
         return MapToResponse(todoItem);
     }
 
@@ -170,19 +126,20 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
             ?? throw new NotFoundException("指定されたTodoが見つかりません");
 
         todoItem.Status = request.Status;
-
-        if (request.Status == TodoStatus.Completed)
-        {
-            todoItem.CompletedAt = DateTime.UtcNow;
-        }
-        else
-        {
-            todoItem.CompletedAt = null;
-        }
+        todoItem.CompletedAt = request.Status == TodoStatus.Completed ? DateTime.UtcNow : null;
 
         await dbContext.SaveChangesAsync(cancellationToken);
-
         return MapToResponse(todoItem);
+    }
+
+    public async Task DeleteAsync(int id, int userId, CancellationToken cancellationToken = default)
+    {
+        var todoItem = await dbContext.TodoItems
+            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken)
+            ?? throw new NotFoundException("指定されたTodoが見つかりません");
+
+        todoItem.DeletedAt = DateTime.UtcNow;
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private static IQueryable<TodoItem> ApplySort(IQueryable<TodoItem> query, string? sortBy, bool sortDesc)
@@ -203,16 +160,10 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
     {
         return new TodoResponse
         {
-            Id = todoItem.Id,
-            Title = todoItem.Title,
-            Description = todoItem.Description,
-            Status = todoItem.Status,
-            Priority = todoItem.Priority,
-            ProgressRate = todoItem.ProgressRate,
-            DueDate = todoItem.DueDate,
-            CompletedAt = todoItem.CompletedAt,
-            CreatedAt = todoItem.CreatedAt,
-            UpdatedAt = todoItem.UpdatedAt,
+            Id = todoItem.Id, Title = todoItem.Title, Description = todoItem.Description,
+            Status = todoItem.Status, Priority = todoItem.Priority, ProgressRate = todoItem.ProgressRate,
+            DueDate = todoItem.DueDate, CompletedAt = todoItem.CompletedAt,
+            CreatedAt = todoItem.CreatedAt, UpdatedAt = todoItem.UpdatedAt,
             CreatedByUserId = todoItem.CreatedByUserId,
             CreatedByDisplayName = todoItem.CreatedBy?.DisplayName ?? string.Empty,
             AssignedToUserId = todoItem.AssignedToUserId,
