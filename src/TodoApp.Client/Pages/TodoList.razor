@@ -85,11 +85,12 @@ else
             var usersTask = UserApiClient.GetUsersAsync();
             await Task.WhenAll(todosTask, usersTask);
 
-            _todos = todosTask.Result;
-            _users = usersTask.Result;
+            _todos = await todosTask;
+            _users = await usersTask;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            Console.Error.WriteLine($"データの読み込みに失敗しました: {ex.Message}");
             _errorMessage = "データの読み込みに失敗しました";
         }
         finally

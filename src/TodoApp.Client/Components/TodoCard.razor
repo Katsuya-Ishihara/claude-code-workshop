@@ -26,7 +26,7 @@
 </div>
 
 @code {
-    [Parameter]
+    [Parameter, EditorRequired]
     public TodoResponse Todo { get; set; } = default!;
 
     [Parameter]
@@ -37,7 +37,7 @@
 
     private bool IsOverdue =>
         Todo.DueDate.HasValue
-        && Todo.DueDate.Value < DateTime.Now
+        && Todo.DueDate.Value < DateTime.UtcNow
         && Todo.Status != TodoStatus.Completed;
 
     private async Task HandleClick()

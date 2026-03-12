@@ -9,9 +9,9 @@ public enum ToastLevel
 
 public class ToastMessage
 {
-    public string Message { get; set; } = string.Empty;
-    public ToastLevel Level { get; set; }
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public required string Message { get; init; }
+    public ToastLevel Level { get; init; }
+    public Guid Id { get; init; } = Guid.NewGuid();
 }
 
 public class ToastService
