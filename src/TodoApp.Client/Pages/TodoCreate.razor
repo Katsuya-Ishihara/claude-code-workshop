@@ -1,0 +1,36 @@
+@page "/todos/create"
+@using TodoApp.Shared.Requests
+@using TodoApp.Shared.Responses
+@inject ITodoApiClient TodoApiClient
+@inject NavigationManager NavigationManager
+
+<h3>Todo 作成</h3>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @_errorMessage
+    </div>
+}
+
+<TodoForm OnSubmit="HandleSubmit" SubmitButtonText="作成" />
+
+@code {
+    private string? _errorMessage;
+
+    private async Task HandleSubmit(CreateTodoRequest request)
+    {
+        _errorMessage = null;
+
+        var result = await TodoApiClient.CreateAsync(request);
+
+        if (result is not null)
+        {
+            NavigationManager.NavigateTo("/todos");
+        }
+        else
+        {
+            _errorMessage = "Todo の作成に失敗しました。もう一度お試しください。";
+        }
+    }
+}
