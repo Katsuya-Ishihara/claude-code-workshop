@@ -1,5 +1,5 @@
 @using TodoApp.Client.Services
-@inject ToastService ToastService
+@inject IToastService ToastService
 @implements IDisposable
 
 <div class="toast-container">
@@ -13,25 +13,29 @@
 </div>
 
 @code {
+    private static readonly TimeSpan ToastLifetime = TimeSpan.FromSeconds(5);
     private System.Timers.Timer? _timer;
 
     protected override void OnInitialized()
     {
-        ToastService.OnChange += StateHasChanged;
-        _timer = new System.Timers.Timer(3000);
-        _timer.Elapsed += async (_, _) => await RemoveExpiredToasts();
+        ToastService.OnChange += OnToastChanged;
+        _timer = new System.Timers.Timer(1000);
+        _timer.Elapsed += (_, _) => RemoveExpiredToasts();
         _timer.AutoReset = true;
         _timer.Start();
     }
 
-    private async Task RemoveExpiredToasts()
+    private void OnToastChanged()
     {
-        var toasts = ToastService.Toasts.ToList();
-        foreach (var toast in toasts)
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void RemoveExpiredToasts()
+    {
+        if (ToastService is ToastService concreteService)
         {
-            ToastService.Remove(toast.Id);
+            concreteService.RemoveExpired(ToastLifetime);
         }
-        await InvokeAsync(StateHasChanged);
     }
 
     private static string GetToastClass(ToastLevel level) => level switch
@@ -44,7 +48,7 @@
 
     public void Dispose()
     {
-        ToastService.OnChange -= StateHasChanged;
+        ToastService.OnChange -= OnToastChanged;
         _timer?.Stop();
         _timer?.Dispose();
     }

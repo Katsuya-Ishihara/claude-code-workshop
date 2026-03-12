@@ -12,15 +12,26 @@ public class ToastMessage
     public string Message { get; set; } = string.Empty;
     public ToastLevel Level { get; set; }
     public Guid Id { get; set; } = Guid.NewGuid();
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 
-public class ToastService
+public class ToastService : IToastService
 {
     public event Action? OnChange;
 
+    private readonly object _lock = new();
     private readonly List<ToastMessage> _toasts = new();
 
-    public IReadOnlyList<ToastMessage> Toasts => _toasts.AsReadOnly();
+    public IReadOnlyList<ToastMessage> Toasts
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _toasts.ToList().AsReadOnly();
+            }
+        }
+    }
 
     public void ShowSuccess(string message)
     {
@@ -39,17 +50,37 @@ public class ToastService
 
     public void Remove(Guid id)
     {
-        var toast = _toasts.FirstOrDefault(t => t.Id == id);
-        if (toast != null)
+        lock (_lock)
         {
-            _toasts.Remove(toast);
+            var toast = _toasts.FirstOrDefault(t => t.Id == id);
+            if (toast != null)
+            {
+                _toasts.Remove(toast);
+            }
+        }
+        OnChange?.Invoke();
+    }
+
+    public void RemoveExpired(TimeSpan lifetime)
+    {
+        bool removed;
+        lock (_lock)
+        {
+            var cutoff = DateTime.UtcNow - lifetime;
+            removed = _toasts.RemoveAll(t => t.CreatedAt <= cutoff) > 0;
+        }
+        if (removed)
+        {
             OnChange?.Invoke();
         }
     }
 
     private void Show(string message, ToastLevel level)
     {
-        _toasts.Add(new ToastMessage { Message = message, Level = level });
+        lock (_lock)
+        {
+            _toasts.Add(new ToastMessage { Message = message, Level = level });
+        }
         OnChange?.Invoke();
     }
 }
