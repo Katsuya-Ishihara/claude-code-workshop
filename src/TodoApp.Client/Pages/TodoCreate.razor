@@ -22,15 +22,23 @@
     {
         _errorMessage = null;
 
-        var result = await TodoApiClient.CreateAsync(request);
+        try
+        {
+            var result = await TodoApiClient.CreateAsync(request);
 
-        if (result is not null)
-        {
-            NavigationManager.NavigateTo("/todos");
+            if (result is not null)
+            {
+                NavigationManager.NavigateTo("/todos");
+            }
+            else
+            {
+                _errorMessage = "Todo の作成に失敗しました。もう一度お試しください。";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _errorMessage = "Todo の作成に失敗しました。もう一度お試しください。";
+            Console.Error.WriteLine($"Todo の作成中にエラーが発生しました: {ex.Message}");
+            _errorMessage = "Todo の作成中にエラーが発生しました。もう一度お試しください。";
         }
     }
 }
