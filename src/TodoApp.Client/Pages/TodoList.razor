@@ -1,0 +1,129 @@
+@page "/todos"
+@inject ITodoApiClient TodoApiClient
+@inject IUserApiClient UserApiClient
+@inject NavigationManager NavigationManager
+
+<h3>Todo 一覧</h3>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <SearchBar Placeholder="Todoを検索..." OnSearch="HandleSearch" />
+    <button class="btn btn-primary btn-create" @onclick="NavigateToCreate">新規作成</button>
+</div>
+
+@if (_isLoading)
+{
+    <div class="text-center my-5">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">読み込み中...</span>
+        </div>
+        <p>読み込み中...</p>
+    </div>
+}
+else if (_errorMessage is not null)
+{
+    <div class="alert alert-danger" role="alert">
+        @_errorMessage
+    </div>
+}
+else if (!FilteredTodos.Any())
+{
+    <div class="text-center my-5">
+        <p>Todoがありません</p>
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+        @foreach (var todo in PagedTodos)
+        {
+            <div class="col">
+                <TodoCard Todo="@todo"
+                          AssigneeName="@GetAssigneeName(todo.AssignedToUserId)"
+                          OnClick="@NavigateToDetail" />
+            </div>
+        }
+    </div>
+
+    <div class="mt-3 d-flex justify-content-center">
+        <Pagination CurrentPage="_currentPage"
+                    TotalPages="TotalPages"
+                    OnPageChanged="HandlePageChanged" />
+    </div>
+}
+
+@code {
+    private List<TodoResponse> _todos = new();
+    private List<UserResponse> _users = new();
+    private bool _isLoading = true;
+    private string? _errorMessage;
+    private string _searchText = string.Empty;
+    private int _currentPage = 1;
+    private const int PageSize = 10;
+
+    private List<TodoResponse> FilteredTodos =>
+        string.IsNullOrWhiteSpace(_searchText)
+            ? _todos
+            : _todos.Where(t =>
+                t.Title.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ||
+                (t.Description?.Contains(_searchText, StringComparison.OrdinalIgnoreCase) ?? false))
+              .ToList();
+
+    private int TotalPages =>
+        (int)Math.Ceiling((double)FilteredTodos.Count / PageSize);
+
+    private List<TodoResponse> PagedTodos =>
+        FilteredTodos
+            .Skip((_currentPage - 1) * PageSize)
+            .Take(PageSize)
+            .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var todosTask = TodoApiClient.GetAllAsync();
+            var usersTask = UserApiClient.GetUsersAsync();
+            await Task.WhenAll(todosTask, usersTask);
+
+            _todos = todosTask.Result;
+            _users = usersTask.Result;
+        }
+        catch (Exception)
+        {
+            _errorMessage = "データの読み込みに失敗しました";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private string? GetAssigneeName(int? userId)
+    {
+        if (userId is null) return null;
+        return _users.FirstOrDefault(u => u.Id == userId)?.DisplayName;
+    }
+
+    private void HandleSearch(string searchText)
+    {
+        _searchText = searchText;
+        _currentPage = 1;
+        StateHasChanged();
+    }
+
+    private void HandlePageChanged(int page)
+    {
+        _currentPage = page;
+        StateHasChanged();
+    }
+
+    private void NavigateToDetail(int todoId)
+    {
+        NavigationManager.NavigateTo($"/todos/{todoId}");
+    }
+
+    private void NavigateToCreate()
+    {
+        NavigationManager.NavigateTo("/todos/create");
+    }
+}
