@@ -13,6 +13,10 @@ public class TodoResponse
     public DateTime? DueDate { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
     public int CreatedByUserId { get; set; }
+    public string CreatedByDisplayName { get; set; } = string.Empty;
     public int? AssignedToUserId { get; set; }
+    public string? AssignedToDisplayName { get; set; }
+    public int? CategoryId { get; set; }
 }

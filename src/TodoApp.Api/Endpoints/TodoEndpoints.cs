@@ -41,7 +41,7 @@ public static class TodoEndpoints
                 return Results.Unauthorized();
             }
 
-            await todoService.DeleteAsync(id, cancellationToken);
+            await todoService.DeleteAsync(id, userId, cancellationToken);
             return Results.NoContent();
         }).RequireAuthorization();
     }
