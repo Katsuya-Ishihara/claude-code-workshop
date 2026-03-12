@@ -53,7 +53,7 @@ public static class TodoEndpoints
                 return Results.ValidationProblem(errors);
             }
 
-            var response = await todoService.UpdateAsync(id, request, cancellationToken);
+            var response = await todoService.UpdateAsync(id, request, userId, cancellationToken);
             return Results.Ok(response);
         }).RequireAuthorization();
     }

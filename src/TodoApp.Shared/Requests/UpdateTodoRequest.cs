@@ -9,6 +9,7 @@ public class UpdateTodoRequest
     [MaxLength(200, ErrorMessage = "タイトルは200文字以内で入力してください")]
     public required string Title { get; set; }
 
+    [MaxLength(2000, ErrorMessage = "説明は2000文字以内で入力してください")]
     public string? Description { get; set; }
     public Priority? Priority { get; set; }
     public DateTime? DueDate { get; set; }

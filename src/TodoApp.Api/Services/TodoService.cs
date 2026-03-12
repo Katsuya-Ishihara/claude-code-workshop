@@ -38,12 +38,21 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
         dbContext.TodoItems.Add(todoItem);
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        // ナビゲーションプロパティを読み込む
+        await dbContext.Entry(todoItem).Reference(t => t.CreatedBy).LoadAsync(cancellationToken);
+        if (todoItem.AssignedToUserId.HasValue)
+        {
+            await dbContext.Entry(todoItem).Reference(t => t.AssignedTo).LoadAsync(cancellationToken);
+        }
+
         return MapToResponse(todoItem);
     }
 
-    public async Task<TodoResponse> UpdateAsync(int id, UpdateTodoRequest request, CancellationToken cancellationToken = default)
+    public async Task<TodoResponse> UpdateAsync(int id, UpdateTodoRequest request, int userId, CancellationToken cancellationToken = default)
     {
         var todoItem = await dbContext.TodoItems
+            .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken)
             ?? throw new NotFoundException("指定されたTodoが見つかりません");
 
@@ -82,8 +91,12 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
             DueDate = todoItem.DueDate,
             CreatedAt = todoItem.CreatedAt,
             UpdatedAt = todoItem.UpdatedAt,
+            CompletedAt = todoItem.CompletedAt,
             CreatedByUserId = todoItem.CreatedByUserId,
-            AssignedToUserId = todoItem.AssignedToUserId
+            CreatedByDisplayName = todoItem.CreatedBy?.DisplayName ?? string.Empty,
+            AssignedToUserId = todoItem.AssignedToUserId,
+            AssignedToDisplayName = todoItem.AssignedTo?.DisplayName,
+            CategoryId = todoItem.CategoryId
         };
     }
 }
