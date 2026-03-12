@@ -38,6 +38,13 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
         dbContext.TodoItems.Add(todoItem);
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        // ナビゲーションプロパティを読み込む
+        await dbContext.Entry(todoItem).Reference(t => t.CreatedBy).LoadAsync(cancellationToken);
+        if (todoItem.AssignedToUserId.HasValue)
+        {
+            await dbContext.Entry(todoItem).Reference(t => t.AssignedTo).LoadAsync(cancellationToken);
+        }
+
         return new TodoResponse
         {
             Id = todoItem.Id,
@@ -47,10 +54,14 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
             Priority = todoItem.Priority,
             ProgressRate = todoItem.ProgressRate,
             DueDate = todoItem.DueDate,
+            CompletedAt = todoItem.CompletedAt,
             CreatedAt = todoItem.CreatedAt,
             UpdatedAt = todoItem.UpdatedAt,
             CreatedByUserId = todoItem.CreatedByUserId,
-            AssignedToUserId = todoItem.AssignedToUserId
+            CreatedByDisplayName = todoItem.CreatedBy.DisplayName,
+            AssignedToUserId = todoItem.AssignedToUserId,
+            AssignedToDisplayName = todoItem.AssignedTo?.DisplayName,
+            CategoryId = todoItem.CategoryId
         };
     }
 }
