@@ -45,6 +45,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -90,6 +92,8 @@ app.MapGet("/weatherforecast", () =>
 
 app.MapGet("/test/auth", () => "Authenticated!")
     .RequireAuthorization();
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
 
