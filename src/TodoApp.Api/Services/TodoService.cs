@@ -107,7 +107,6 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
         dbContext.TodoItems.Add(todoItem);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        // ナビゲーションプロパティを読み込む
         await dbContext.Entry(todoItem).Reference(t => t.CreatedBy).LoadAsync(cancellationToken);
         if (todoItem.AssignedToUserId.HasValue)
         {
@@ -130,23 +129,36 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
             throw new NotFoundException("指定されたTodoが見つかりません");
         }
 
-        return new TodoResponse
+        return MapToResponse(todo);
+    }
+
+    public async Task<TodoResponse> UpdateAsync(int id, UpdateTodoRequest request, int userId, CancellationToken cancellationToken = default)
+    {
+        var todoItem = await dbContext.TodoItems
+            .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
+            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken)
+            ?? throw new NotFoundException("指定されたTodoが見つかりません");
+
+        if (request.AssignedToUserId.HasValue)
         {
-            Id = todo.Id,
-            Title = todo.Title,
-            Description = todo.Description,
-            Status = todo.Status,
-            Priority = todo.Priority,
-            ProgressRate = todo.ProgressRate,
-            DueDate = todo.DueDate,
-            CompletedAt = todo.CompletedAt,
-            CreatedByUserId = todo.CreatedByUserId,
-            AssignedToUserId = todo.AssignedToUserId,
-            CreatedByDisplayName = todo.CreatedBy.DisplayName,
-            AssignedToDisplayName = todo.AssignedTo?.DisplayName,
-            CreatedAt = todo.CreatedAt,
-            UpdatedAt = todo.UpdatedAt
-        };
+            var assigneeExists = await dbContext.Users
+                .AnyAsync(u => u.Id == request.AssignedToUserId.Value, cancellationToken);
+            if (!assigneeExists)
+            {
+                throw new NotFoundException("指定された担当者が見つかりません");
+            }
+        }
+
+        todoItem.Title = request.Title;
+        todoItem.Description = request.Description;
+        todoItem.Priority = request.Priority ?? Priority.Medium;
+        todoItem.DueDate = request.DueDate;
+        todoItem.AssignedToUserId = request.AssignedToUserId;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return MapToResponse(todoItem);
     }
 
     public async Task<TodoResponse> UpdateStatusAsync(int id, UpdateTodoStatusRequest request, CancellationToken cancellationToken = default)
@@ -202,7 +214,7 @@ public class TodoService(TodoAppDbContext dbContext) : ITodoService
             CreatedAt = todoItem.CreatedAt,
             UpdatedAt = todoItem.UpdatedAt,
             CreatedByUserId = todoItem.CreatedByUserId,
-            CreatedByDisplayName = todoItem.CreatedBy.DisplayName,
+            CreatedByDisplayName = todoItem.CreatedBy?.DisplayName ?? string.Empty,
             AssignedToUserId = todoItem.AssignedToUserId,
             AssignedToDisplayName = todoItem.AssignedTo?.DisplayName,
             CategoryId = todoItem.CategoryId
