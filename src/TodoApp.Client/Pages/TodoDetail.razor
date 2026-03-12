@@ -1,0 +1,195 @@
+@page "/todos/{Id:int}"
+@inject ITodoApiClient TodoApiClient
+@inject IUserApiClient UserApiClient
+@inject ToastService ToastService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Todo 詳細</PageTitle>
+
+@if (_isLoading)
+{
+    <div class="loading">
+        <p>読み込み中...</p>
+    </div>
+}
+else if (_todo is null)
+{
+    <div class="not-found">
+        <h3>Todo が見つかりませんでした</h3>
+        <p>指定された Todo は存在しないか、削除された可能性があります。</p>
+        <a href="/todos" class="btn btn-primary">一覧に戻る</a>
+    </div>
+}
+else
+{
+    <div class="todo-detail">
+        <div class="todo-detail-header">
+            <h2>@_todo.Title</h2>
+            <div class="todo-detail-actions">
+                <a href="/todos/@_todo.Id/edit" class="btn btn-primary btn-edit">編集</a>
+                <button class="btn btn-danger btn-delete" @onclick="ShowDeleteConfirmation">削除</button>
+            </div>
+        </div>
+
+        <div class="todo-detail-body">
+            <div class="todo-detail-section">
+                <label>ステータス</label>
+                <div class="todo-detail-status">
+                    <StatusBadge Status="@_todo.Status" />
+                    @if (_todo.Status != TodoStatus.Completed)
+                    {
+                        <button class="btn btn-sm btn-outline-primary btn-status-change" @onclick="ChangeStatus">
+                            @GetNextStatusText()
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <div class="todo-detail-section">
+                <label>優先度</label>
+                <PriorityIcon Priority="@_todo.Priority" />
+                <span>@GetPriorityText()</span>
+            </div>
+
+            <div class="todo-detail-section">
+                <label>説明</label>
+                <p class="todo-description">@(_todo.Description ?? "説明なし")</p>
+            </div>
+
+            <div class="todo-detail-section">
+                <label>担当者</label>
+                <p class="todo-assignee">@GetAssigneeName()</p>
+            </div>
+
+            <div class="todo-detail-section">
+                <label>期限</label>
+                <p class="todo-due-date">@(_todo.DueDate?.ToString("yyyy/MM/dd") ?? "未設定")</p>
+            </div>
+
+            <div class="todo-detail-section">
+                <label>作成日時</label>
+                <p class="todo-created-at">@_todo.CreatedAt.ToString("yyyy/MM/dd HH:mm")</p>
+            </div>
+
+            <div class="todo-detail-section">
+                <label>更新日時</label>
+                <p class="todo-updated-at">@_todo.UpdatedAt.ToString("yyyy/MM/dd HH:mm")</p>
+            </div>
+        </div>
+
+        <div class="todo-detail-footer">
+            <a href="/todos" class="btn btn-secondary">一覧に戻る</a>
+        </div>
+    </div>
+
+    <ConfirmDialog IsVisible="@_showDeleteConfirm"
+                   Title="Todo の削除"
+                   Message="@($"「{_todo.Title}」を削除しますか？この操作は取り消せません。")"
+                   OnConfirm="OnDeleteConfirm" />
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private TodoResponse? _todo;
+    private List<UserResponse>? _users;
+    private bool _isLoading = true;
+    private bool _showDeleteConfirm;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            var todoTask = TodoApiClient.GetByIdAsync(Id);
+            var usersTask = UserApiClient.GetUsersAsync();
+            await Task.WhenAll(todoTask, usersTask);
+
+            _todo = await todoTask;
+            _users = await usersTask;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Todo の読み込みに失敗しました: {ex.Message}");
+            _todo = null;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task ChangeStatus()
+    {
+        if (_todo is null) return;
+
+        var nextStatus = _todo.Status switch
+        {
+            TodoStatus.NotStarted => TodoStatus.InProgress,
+            TodoStatus.InProgress => TodoStatus.Completed,
+            _ => _todo.Status
+        };
+
+        var request = new UpdateTodoStatusRequest { Status = nextStatus };
+        var result = await TodoApiClient.UpdateStatusAsync(Id, request);
+
+        if (result is not null)
+        {
+            _todo = result;
+            ToastService.ShowSuccess("ステータスを更新しました");
+        }
+        else
+        {
+            ToastService.ShowError("ステータスの更新に失敗しました");
+        }
+    }
+
+    private string GetNextStatusText() => _todo?.Status switch
+    {
+        TodoStatus.NotStarted => "進行中にする",
+        TodoStatus.InProgress => "完了にする",
+        _ => string.Empty
+    };
+
+    private string GetPriorityText() => _todo?.Priority switch
+    {
+        Priority.Low => "低",
+        Priority.Medium => "中",
+        Priority.High => "高",
+        _ => "不明"
+    };
+
+    private string GetAssigneeName()
+    {
+        if (_todo?.AssignedToUserId is null || _users is null)
+            return "未割当";
+
+        var user = _users.FirstOrDefault(u => u.Id == _todo.AssignedToUserId);
+        return user?.DisplayName ?? "不明なユーザー";
+    }
+
+    private void ShowDeleteConfirmation()
+    {
+        _showDeleteConfirm = true;
+    }
+
+    private async Task OnDeleteConfirm(bool confirmed)
+    {
+        _showDeleteConfirm = false;
+
+        if (!confirmed) return;
+
+        var result = await TodoApiClient.DeleteAsync(Id);
+
+        if (result)
+        {
+            ToastService.ShowSuccess("Todo を削除しました");
+            NavigationManager.NavigateTo("/todos");
+        }
+        else
+        {
+            ToastService.ShowError("Todo の削除に失敗しました");
+        }
+    }
+}
