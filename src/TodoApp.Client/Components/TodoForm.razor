@@ -1,0 +1,71 @@
+@using TodoApp.Shared.Models
+@using TodoApp.Shared.Requests
+
+<EditForm Model="@_model" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div>
+        <label for="title">タイトル</label>
+        <InputText id="title" @bind-Value="_model.Title" />
+        <ValidationMessage For="@(() => _model.Title)" />
+    </div>
+
+    <div>
+        <label for="description">説明</label>
+        <InputTextArea id="description" @bind-Value="_model.Description" />
+    </div>
+
+    <div>
+        <label for="priority">優先度</label>
+        <InputSelect id="priority" @bind-Value="_model.Priority">
+            <option value="">未選択</option>
+            <option value="@Priority.Low">Low</option>
+            <option value="@Priority.Medium">Medium</option>
+            <option value="@Priority.High">High</option>
+        </InputSelect>
+    </div>
+
+    <div>
+        <label for="dueDate">期限</label>
+        <InputDate id="dueDate" @bind-Value="_model.DueDate" />
+    </div>
+
+    <div>
+        <UserSelect @bind-SelectedUserId="_model.AssignedToUserId" Label="担当者" />
+    </div>
+
+    <button type="submit">@SubmitButtonText</button>
+</EditForm>
+
+@code {
+    private CreateTodoRequest _model = new();
+
+    [Parameter]
+    public CreateTodoRequest? InitialValue { get; set; }
+
+    [Parameter]
+    public EventCallback<CreateTodoRequest> OnSubmit { get; set; }
+
+    [Parameter]
+    public string SubmitButtonText { get; set; } = "作成";
+
+    protected override void OnInitialized()
+    {
+        if (InitialValue is not null)
+        {
+            _model = new CreateTodoRequest
+            {
+                Title = InitialValue.Title,
+                Description = InitialValue.Description,
+                Priority = InitialValue.Priority,
+                DueDate = InitialValue.DueDate,
+                AssignedToUserId = InitialValue.AssignedToUserId
+            };
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await OnSubmit.InvokeAsync(_model);
+    }
+}
