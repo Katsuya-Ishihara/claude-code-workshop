@@ -1,0 +1,55 @@
+@using TodoApp.Client.Services
+@inject IToastService ToastService
+@implements IDisposable
+
+<div class="toast-container">
+    @foreach (var toast in ToastService.Toasts)
+    {
+        <div class="toast @GetToastClass(toast.Level)">
+            <span class="toast-message">@toast.Message</span>
+            <button class="toast-close" @onclick="() => ToastService.Remove(toast.Id)">&times;</button>
+        </div>
+    }
+</div>
+
+@code {
+    private static readonly TimeSpan ToastLifetime = TimeSpan.FromSeconds(5);
+    private System.Timers.Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnChange += OnToastChanged;
+        _timer = new System.Timers.Timer(1000);
+        _timer.Elapsed += (_, _) => RemoveExpiredToasts();
+        _timer.AutoReset = true;
+        _timer.Start();
+    }
+
+    private void OnToastChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void RemoveExpiredToasts()
+    {
+        if (ToastService is ToastService concreteService)
+        {
+            concreteService.RemoveExpired(ToastLifetime);
+        }
+    }
+
+    private static string GetToastClass(ToastLevel level) => level switch
+    {
+        ToastLevel.Success => "toast-success",
+        ToastLevel.Error => "toast-error",
+        ToastLevel.Info => "toast-info",
+        _ => "toast-info"
+    };
+
+    public void Dispose()
+    {
+        ToastService.OnChange -= OnToastChanged;
+        _timer?.Stop();
+        _timer?.Dispose();
+    }
+}

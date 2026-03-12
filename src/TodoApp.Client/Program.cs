@@ -14,6 +14,8 @@ builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredServ
 builder.Services.AddScoped<IAuthApiClient, AuthApiClient>();
 builder.Services.AddScoped<ITodoApiClient, TodoApiClient>();
 builder.Services.AddScoped<IUserApiClient, UserApiClient>();
+builder.Services.AddScoped<ToastService>();
+builder.Services.AddScoped<IToastService>(sp => sp.GetRequiredService<ToastService>());
 builder.Services.AddAuthorizationCore();
 
 await builder.Build().RunAsync();

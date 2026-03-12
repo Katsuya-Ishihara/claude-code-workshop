@@ -1,0 +1,24 @@
+@using TodoApp.Shared.Models
+
+<span class="badge @BadgeClass">@BadgeText</span>
+
+@code {
+    [Parameter]
+    public TodoStatus Status { get; set; }
+
+    private string BadgeClass => Status switch
+    {
+        TodoStatus.NotStarted => "bg-secondary",
+        TodoStatus.InProgress => "bg-primary",
+        TodoStatus.Completed => "bg-success",
+        _ => "bg-secondary"
+    };
+
+    private string BadgeText => Status switch
+    {
+        TodoStatus.NotStarted => "未着手",
+        TodoStatus.InProgress => "進行中",
+        TodoStatus.Completed => "完了",
+        _ => "不明"
+    };
+}
