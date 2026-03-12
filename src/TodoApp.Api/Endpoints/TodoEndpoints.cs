@@ -33,8 +33,14 @@ public static class TodoEndpoints
             return Results.Created($"/api/todos/{response.Id}", response);
         }).RequireAuthorization();
 
-        app.MapDelete("/api/todos/{id:int}", async (int id, ITodoService todoService, CancellationToken cancellationToken) =>
+        app.MapDelete("/api/todos/{id:int}", async (int id, ClaimsPrincipal user, ITodoService todoService, CancellationToken cancellationToken) =>
         {
+            var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userIdClaim is null || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Results.Unauthorized();
+            }
+
             await todoService.DeleteAsync(id, cancellationToken);
             return Results.NoContent();
         }).RequireAuthorization();
