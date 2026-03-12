@@ -7,7 +7,7 @@ public class UpdateTodoRequest
 {
     [Required(ErrorMessage = "タイトルは必須です")]
     [MaxLength(200, ErrorMessage = "タイトルは200文字以内で入力してください")]
-    public string Title { get; set; } = string.Empty;
+    public required string Title { get; set; }
 
     public string? Description { get; set; }
 

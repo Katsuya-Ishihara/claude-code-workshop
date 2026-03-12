@@ -142,6 +142,15 @@ public class TodoApiClientTests
         Assert.Null(result);
     }
 
+    [Fact]
+    public async Task CreateAsync_サーバーエラー_HttpRequestExceptionをスローする()
+    {
+        var (client, _) = CreateClient(HttpStatusCode.InternalServerError);
+        var request = new CreateTodoRequest { Title = "テスト" };
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => client.CreateAsync(request));
+    }
+
     #endregion
 
     #region UpdateAsync
@@ -174,6 +183,15 @@ public class TodoApiClientTests
         var result = await client.UpdateAsync(999, request);
 
         Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_サーバーエラー_HttpRequestExceptionをスローする()
+    {
+        var (client, _) = CreateClient(HttpStatusCode.InternalServerError);
+        var request = new UpdateTodoRequest { Title = "更新済み" };
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => client.UpdateAsync(1, request));
     }
 
     #endregion
@@ -233,6 +251,15 @@ public class TodoApiClientTests
         Assert.Null(result);
     }
 
+    [Fact]
+    public async Task UpdateStatusAsync_サーバーエラー_HttpRequestExceptionをスローする()
+    {
+        var (client, _) = CreateClient(HttpStatusCode.InternalServerError);
+        var request = new UpdateTodoStatusRequest { Status = TodoStatus.InProgress };
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => client.UpdateStatusAsync(1, request));
+    }
+
     #endregion
 
     #region UpdateAssigneeAsync
@@ -276,6 +303,15 @@ public class TodoApiClientTests
         var result = await client.UpdateAssigneeAsync(999, request);
 
         Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task UpdateAssigneeAsync_サーバーエラー_HttpRequestExceptionをスローする()
+    {
+        var (client, _) = CreateClient(HttpStatusCode.InternalServerError);
+        var request = new UpdateTodoAssigneeRequest { AssignedToUserId = 5 };
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => client.UpdateAssigneeAsync(1, request));
     }
 
     #endregion

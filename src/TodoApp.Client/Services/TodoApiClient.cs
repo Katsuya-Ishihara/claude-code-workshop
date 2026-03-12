@@ -18,17 +18,17 @@ public class TodoApiClient : ITodoApiClient
     }
 
     /// <inheritdoc />
-    public async Task<List<TodoResponse>> GetAllAsync()
+    public async Task<List<TodoResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync("api/todos");
+        var response = await _httpClient.GetAsync("api/todos", cancellationToken);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<List<TodoResponse>>() ?? new List<TodoResponse>();
+        return await response.Content.ReadFromJsonAsync<List<TodoResponse>>(cancellationToken: cancellationToken) ?? new List<TodoResponse>();
     }
 
     /// <inheritdoc />
-    public async Task<TodoResponse?> GetByIdAsync(int id)
+    public async Task<TodoResponse?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync($"api/todos/{id}");
+        var response = await _httpClient.GetAsync($"api/todos/{id}", cancellationToken);
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
@@ -36,65 +36,85 @@ public class TodoApiClient : ITodoApiClient
         }
 
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<TodoResponse>();
+        return await response.Content.ReadFromJsonAsync<TodoResponse>(cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<TodoResponse?> CreateAsync(CreateTodoRequest request)
+    public async Task<TodoResponse?> CreateAsync(CreateTodoRequest request, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/todos", request);
+        var response = await _httpClient.PostAsJsonAsync("api/todos", request, cancellationToken);
+
+        if ((int)response.StatusCode >= 500)
+        {
+            throw new HttpRequestException($"サーバーエラーが発生しました。ステータスコード: {(int)response.StatusCode}", null, response.StatusCode);
+        }
 
         if (!response.IsSuccessStatusCode)
         {
             return null;
         }
 
-        return await response.Content.ReadFromJsonAsync<TodoResponse>();
+        return await response.Content.ReadFromJsonAsync<TodoResponse>(cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<TodoResponse?> UpdateAsync(int id, UpdateTodoRequest request)
+    public async Task<TodoResponse?> UpdateAsync(int id, UpdateTodoRequest request, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.PutAsJsonAsync($"api/todos/{id}", request);
+        var response = await _httpClient.PutAsJsonAsync($"api/todos/{id}", request, cancellationToken);
+
+        if ((int)response.StatusCode >= 500)
+        {
+            throw new HttpRequestException($"サーバーエラーが発生しました。ステータスコード: {(int)response.StatusCode}", null, response.StatusCode);
+        }
 
         if (!response.IsSuccessStatusCode)
         {
             return null;
         }
 
-        return await response.Content.ReadFromJsonAsync<TodoResponse>();
+        return await response.Content.ReadFromJsonAsync<TodoResponse>(cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.DeleteAsync($"api/todos/{id}");
-        return response.StatusCode == HttpStatusCode.NoContent;
+        var response = await _httpClient.DeleteAsync($"api/todos/{id}", cancellationToken);
+        return response.IsSuccessStatusCode;
     }
 
     /// <inheritdoc />
-    public async Task<TodoResponse?> UpdateStatusAsync(int id, UpdateTodoStatusRequest request)
+    public async Task<TodoResponse?> UpdateStatusAsync(int id, UpdateTodoStatusRequest request, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.PatchAsJsonAsync($"api/todos/{id}/status", request);
+        var response = await _httpClient.PatchAsJsonAsync($"api/todos/{id}/status", request, cancellationToken);
+
+        if ((int)response.StatusCode >= 500)
+        {
+            throw new HttpRequestException($"サーバーエラーが発生しました。ステータスコード: {(int)response.StatusCode}", null, response.StatusCode);
+        }
 
         if (!response.IsSuccessStatusCode)
         {
             return null;
         }
 
-        return await response.Content.ReadFromJsonAsync<TodoResponse>();
+        return await response.Content.ReadFromJsonAsync<TodoResponse>(cancellationToken: cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<TodoResponse?> UpdateAssigneeAsync(int id, UpdateTodoAssigneeRequest request)
+    public async Task<TodoResponse?> UpdateAssigneeAsync(int id, UpdateTodoAssigneeRequest request, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.PatchAsJsonAsync($"api/todos/{id}/assign", request);
+        var response = await _httpClient.PatchAsJsonAsync($"api/todos/{id}/assign", request, cancellationToken);
+
+        if ((int)response.StatusCode >= 500)
+        {
+            throw new HttpRequestException($"サーバーエラーが発生しました。ステータスコード: {(int)response.StatusCode}", null, response.StatusCode);
+        }
 
         if (!response.IsSuccessStatusCode)
         {
             return null;
         }
 
-        return await response.Content.ReadFromJsonAsync<TodoResponse>();
+        return await response.Content.ReadFromJsonAsync<TodoResponse>(cancellationToken: cancellationToken);
     }
 }
