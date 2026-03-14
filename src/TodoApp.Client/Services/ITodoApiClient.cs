@@ -14,6 +14,11 @@ public interface ITodoApiClient
     Task<List<TodoResponse>> GetAllAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Todo 一覧をページネーション付きで取得する。
+    /// </summary>
+    Task<PaginatedResponse<TodoResponse>> GetAllPagedAsync(int page = 1, int pageSize = 10, string? keyword = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 指定された ID の Todo を取得する。
     /// </summary>
     /// <param name="id">Todo の ID。</param>

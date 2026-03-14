@@ -38,6 +38,12 @@ builder.Services.AddScoped<ITodoService, TodoService>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TodoAppDbContext>();
+    db.Database.EnsureCreated();
+}
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())

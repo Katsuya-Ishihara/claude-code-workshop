@@ -20,9 +20,22 @@ public class TodoApiClient : ITodoApiClient
     /// <inheritdoc />
     public async Task<List<TodoResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync("api/todos", cancellationToken);
+        var paged = await GetAllPagedAsync(page: 1, pageSize: 100, cancellationToken: cancellationToken);
+        return paged.Items;
+    }
+
+    /// <inheritdoc />
+    public async Task<PaginatedResponse<TodoResponse>> GetAllPagedAsync(int page = 1, int pageSize = 10, string? keyword = null, CancellationToken cancellationToken = default)
+    {
+        var url = $"api/todos?page={page}&pageSize={pageSize}";
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            url += $"&keyword={Uri.EscapeDataString(keyword)}";
+        }
+        var response = await _httpClient.GetAsync(url, cancellationToken);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<List<TodoResponse>>(cancellationToken: cancellationToken) ?? new List<TodoResponse>();
+        return await response.Content.ReadFromJsonAsync<PaginatedResponse<TodoResponse>>(cancellationToken: cancellationToken)
+            ?? new PaginatedResponse<TodoResponse>();
     }
 
     /// <inheritdoc />

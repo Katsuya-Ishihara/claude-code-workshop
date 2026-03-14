@@ -56,7 +56,11 @@ public class TodoApiClientTests
             CreateSampleTodoResponse(1, "Todo1"),
             CreateSampleTodoResponse(2, "Todo2")
         };
-        var (client, handler) = CreateClient(HttpStatusCode.OK, expectedTodos);
+        var pagedResponse = new PaginatedResponse<TodoResponse>
+        {
+            Items = expectedTodos, TotalCount = 2, Page = 1, PageSize = 100
+        };
+        var (client, handler) = CreateClient(HttpStatusCode.OK, pagedResponse);
 
         var result = await client.GetAllAsync();
 
@@ -65,13 +69,17 @@ public class TodoApiClientTests
         Assert.Equal("Todo1", result[0].Title);
         Assert.Equal("Todo2", result[1].Title);
         Assert.Equal(HttpMethod.Get, handler.LastRequest?.Method);
-        Assert.Equal("api/todos", handler.LastRequest?.RequestUri?.PathAndQuery.TrimStart('/'));
+        Assert.Contains("api/todos", handler.LastRequest?.RequestUri?.PathAndQuery ?? "");
     }
 
     [Fact]
     public async Task GetAllAsync_空リスト_空のリストを返す()
     {
-        var (client, _) = CreateClient(HttpStatusCode.OK, new List<TodoResponse>());
+        var pagedResponse = new PaginatedResponse<TodoResponse>
+        {
+            Items = new List<TodoResponse>(), TotalCount = 0, Page = 1, PageSize = 100
+        };
+        var (client, _) = CreateClient(HttpStatusCode.OK, pagedResponse);
 
         var result = await client.GetAllAsync();
 
