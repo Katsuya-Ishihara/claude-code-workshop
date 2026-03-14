@@ -4,20 +4,20 @@
 <EditForm Model="@_model" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
 
-    <div>
-        <label for="title">タイトル</label>
-        <InputText id="title" @bind-Value="_model.Title" />
+    <div class="mb-3">
+        <label for="title" class="form-label">タイトル</label>
+        <InputText id="title" class="form-control" @bind-Value="_model.Title" />
         <ValidationMessage For="@(() => _model.Title)" />
     </div>
 
-    <div>
-        <label for="description">説明</label>
-        <InputTextArea id="description" @bind-Value="_model.Description" />
+    <div class="mb-3">
+        <label for="description" class="form-label">説明</label>
+        <InputTextArea id="description" class="form-control" rows="4" @bind-Value="_model.Description" />
     </div>
 
-    <div>
-        <label for="priority">優先度</label>
-        <InputSelect id="priority" @bind-Value="_model.Priority">
+    <div class="mb-3">
+        <label for="priority" class="form-label">優先度</label>
+        <InputSelect id="priority" class="form-select" @bind-Value="_model.Priority">
             <option value="">未選択</option>
             <option value="@Priority.Low">Low</option>
             <option value="@Priority.Medium">Medium</option>
@@ -25,16 +25,16 @@
         </InputSelect>
     </div>
 
-    <div>
-        <label for="dueDate">期限</label>
-        <InputDate id="dueDate" @bind-Value="_model.DueDate" />
+    <div class="mb-3">
+        <label for="dueDate" class="form-label">期限</label>
+        <InputDate id="dueDate" class="form-control" @bind-Value="_model.DueDate" />
     </div>
 
-    <div>
+    <div class="mb-3">
         <UserSelect @bind-SelectedUserId="_model.AssignedToUserId" Label="担当者" />
     </div>
 
-    <button type="submit">@SubmitButtonText</button>
+    <button type="submit" class="btn btn-primary">@SubmitButtonText</button>
 </EditForm>
 
 @code {

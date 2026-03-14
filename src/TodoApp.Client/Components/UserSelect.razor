@@ -2,8 +2,8 @@
 @using TodoApp.Shared.Responses
 @inject IUserApiClient UserApiClient
 
-<label>@Label</label>
-<select value="@SelectedUserIdString" @onchange="OnSelectionChanged" disabled="@_isLoading">
+<label class="form-label">@Label</label>
+<select class="form-select" value="@SelectedUserIdString" @onchange="OnSelectionChanged" disabled="@_isLoading">
     <option value="">未割当</option>
     @if (_users is not null)
     {
